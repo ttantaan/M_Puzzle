@@ -1,0 +1,125 @@
+from IPython.display import HTML
+
+html_code = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>M Puzzle</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+    }
+    #board {
+        display: grid;
+        grid-template-columns: repeat(9, 50px);
+        grid-template-rows: repeat(9, 50px);
+        gap: 2px;
+        margin: 20px auto;
+        width: max-content;
+    }
+    .cell {
+        width: 50px;
+        height: 50px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+    }
+    .piece {
+        width: 48px;
+        height: 48px;
+        background-color: #4CAF50;
+        border-radius: 6px;
+        cursor: grab;
+    }
+    #pieces {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    #message {
+        font-size: 20px;
+        margin-top: 20px;
+        color: green;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<h2>Arrange the 8 pieces to form the letter M</h2>
+
+<div id="board"></div>
+
+<h3>Pieces</h3>
+<div id="pieces"></div>
+
+<div id="message"></div>
+
+<script>
+const board = document.getElementById("board");
+const piecesContainer = document.getElementById("pieces");
+const message = document.getElementById("message");
+
+// Create 9x9 grid
+for (let i = 0; i < 81; i++) {
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    cell.dataset.index = i;
+    cell.ondragover = (e) => e.preventDefault();
+    cell.ondrop = drop;
+    board.appendChild(cell);
+}
+
+// Create 8 draggable pieces
+for (let i = 0; i < 8; i++) {
+    const piece = document.createElement("div");
+    piece.classList.add("piece");
+    piece.draggable = true;
+    piece.id = "piece" + i;
+    piece.ondragstart = drag;
+    piecesContainer.appendChild(piece);
+}
+
+// Target M shape positions (indexes in 9x9 grid)
+const targetM = [
+    0, 9, 18, 27, 36,   // left column
+    8, 17, 26, 35, 44,  // right column
+    19, 29, 39, 31, 23  // middle V shape
+];
+
+function drag(e) {
+    e.dataTransfer.setData("text", e.target.id);
+}
+
+function drop(e) {
+    const id = e.dataTransfer.getData("text");
+    if (!e.target.hasChildNodes()) {
+        e.target.appendChild(document.getElementById(id));
+        checkWin();
+    }
+}
+
+function checkWin() {
+    let placed = [];
+    document.querySelectorAll(".cell").forEach(cell => {
+        if (cell.firstChild) {
+            placed.push(parseInt(cell.dataset.index));
+        }
+    });
+
+    // Check if placed cells match any 8 of the M positions
+    let correct = placed.filter(p => targetM.includes(p));
+    if (correct.length === 8) {
+        message.innerText = "You formed the M! 🎉";
+    }
+}
+</script>
+
+</body>
+</html>
+"""
+
+HTML(html_code)
