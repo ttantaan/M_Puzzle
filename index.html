@@ -10,12 +10,15 @@ body{
   font-family: Arial, sans-serif;
   text-align:center;
   background:#f4f4f4;
+  margin:0;
+  padding:0;
 }
 
 h1{ margin-top:20px; }
 
 #instructions{
-  width:340px;
+  width:90%;
+  max-width:340px;
   margin:10px auto;
   font-size:15px;
   background:#fff;
@@ -25,43 +28,52 @@ h1{ margin-top:20px; }
 }
 
 #board{
-  width:306px;
-  height:306px;
+  width:90vw;
+  max-width:320px;
+  aspect-ratio:1/1;
   margin:20px auto;
   display:grid;
   grid-template-columns:repeat(3,1fr);
   grid-template-rows:repeat(3,1fr);
-  gap:3px;
+  gap:4px;
   background:#333;
-  padding:3px;
+  padding:4px;
+  border-radius:8px;
 }
 
 .tile{
   display:flex;
   align-items:center;
   justify-content:center;
-  user-select:none;
-  font-size:40px;
+  font-size:42px;
   font-weight:bold;
+  user-select:none;
+  border-radius:6px;
+  transition:0.15s;
 }
 
 .filled{
   background:#2e7d32;
   color:white;
-  cursor:grab;
+}
+
+.filled.selected{
+  outline:4px solid #ffcc00;
+  transform:scale(0.98);
 }
 
 .empty{
-  background:#fafafa;
+  background:#eaeaea;
 }
 
 #stats{
   font-size:18px;
+  margin-top:10px;
 }
 
 #message{
   margin-top:15px;
-  font-size:20px;
+  font-size:22px;
   font-weight:bold;
   color:green;
 }
@@ -70,6 +82,8 @@ button{
   padding:10px 18px;
   font-size:16px;
   margin-top:10px;
+  border:none;
+  border-radius:6px;
 }
 </style>
 </head>
@@ -80,8 +94,9 @@ button{
 
 <div id="instructions">
 <b>Instructions:</b><br>
-Drag a green tile into the empty space.<br>
-No clicking required — only drag and drop.
+Tap a green tile to select it.<br>
+Then tap the empty space next to it to move it.<br>
+Goal: form the letter <b>M</b>.
 </div>
 
 <div id="stats">
@@ -102,6 +117,7 @@ const message = document.getElementById("message");
 
 let tiles = [];
 let moves = 0;
+let selected = null;
 
 const solvedPattern = [
   1,0,1,
@@ -109,7 +125,7 @@ const solvedPattern = [
   1,0,1
 ];
 
-// Build board
+// build board
 function createBoard(){
   board.innerHTML="";
 
@@ -119,29 +135,42 @@ function createBoard(){
 
     if(val === 0){
       div.classList.add("empty");
-
-      div.ondragover = e => e.preventDefault();
-
-      div.ondrop = (e) => {
-        const fromIndex = parseInt(e.dataTransfer.getData("text"));
-        moveTile(fromIndex);
-      };
-
+      div.addEventListener("click", ()=>handleEmptyClick(i));
     } else {
       div.classList.add("filled");
-
-      div.draggable = true;
-
-      div.ondragstart = (e) => {
-        e.dataTransfer.setData("text", i);
-      };
+      if(selected === i) div.classList.add("selected");
+      div.addEventListener("click", ()=>selectTile(i));
     }
 
     board.appendChild(div);
   });
 }
 
-// movement rules
+// select tile
+function selectTile(i){
+  selected = i;
+  createBoard();
+}
+
+// move if valid
+function handleEmptyClick(emptyIndex){
+  if(selected === null) return;
+
+  if(getNeighbors(selected).includes(emptyIndex)){
+    [tiles[selected], tiles[emptyIndex]] =
+    [tiles[emptyIndex], tiles[selected]];
+
+    moves++;
+    movesEl.innerText = moves;
+
+    selected = null;
+
+    createBoard();
+    checkWin();
+  }
+}
+
+// neighbors
 function getNeighbors(i){
   const n=[];
   const r=Math.floor(i/3), c=i%3;
@@ -152,21 +181,7 @@ function getNeighbors(i){
   return n;
 }
 
-function moveTile(i){
-  const emptyIndex = tiles.indexOf(0);
-
-  if(getNeighbors(i).includes(emptyIndex)){
-    [tiles[i], tiles[emptyIndex]] =
-    [tiles[emptyIndex], tiles[i]];
-
-    moves++;
-    movesEl.innerText = moves;
-
-    createBoard();
-    checkWin();
-  }
-}
-
+// win condition
 function checkWin(){
   if(tiles.join("") === solvedPattern.join("")){
     message.innerHTML =
@@ -176,7 +191,7 @@ function checkWin(){
   }
 }
 
-// solvability
+// solvable shuffle
 function isSolvable(arr){
   let inv=0;
   for(let i=0;i<arr.length;i++){
@@ -196,11 +211,13 @@ function shuffle(){
   return arr;
 }
 
+// start
 function startGame(){
-  moves=0;
-  movesEl.innerText=moves;
-  message.innerText="";
-  tiles=shuffle();
+  tiles = shuffle();
+  moves = 0;
+  selected = null;
+  movesEl.innerText = moves;
+  message.innerText = "";
   createBoard();
 }
 
