@@ -15,9 +15,9 @@ body{
 h1{ margin-top:20px; }
 
 #instructions{
-  width:320px;
+  width:340px;
   margin:10px auto;
-  font-size:16px;
+  font-size:15px;
   background:#fff;
   padding:10px;
   border-radius:6px;
@@ -70,14 +70,15 @@ button{
 }
 </style>
 </head>
+
 <body>
 
 <h1>Sliding Puzzle — Form the Letter M</h1>
 
 <div id="instructions">
 <b>Instructions:</b><br>
-Drag a green tile into the empty space <b>or click a tile</b> next to the empty space to slide it.<br>
-Arrange the tiles so the green blocks form the letter <b>M</b>.
+Click or drag a green tile into the empty space.<br>
+Rearrange the tiles until they form the letter <b>M</b>.
 </div>
 
 <div id="stats">
@@ -98,7 +99,7 @@ const message = document.getElementById("message");
 let tiles = [];
 let moves = 0;
 
-// M pattern
+// Solved M pattern (visual goal)
 const solvedPattern = [
   1,0,1,
   1,1,1,
@@ -148,19 +149,25 @@ function getNeighbors(i){
 
 function moveTile(i){
   const emptyIndex = tiles.indexOf(0);
+
   if(getNeighbors(i).includes(emptyIndex)){
     [tiles[i], tiles[emptyIndex]] =
     [tiles[emptyIndex], tiles[i]];
+
     moves++;
-    movesEl.innerText=moves;
+    movesEl.innerText = moves;
+
     createBoard();
     checkWin();
   }
 }
 
 function checkWin(){
-  if(tiles.join("")===solvedPattern.join("")){
-    message.innerText="You formed the letter M! 🎉";
+  if(tiles.join("") === solvedPattern.join("")){
+    message.innerHTML =
+      "🎉 Puzzle Complete!<br><br>" +
+      "Your escape code is:<br><br>" +
+      "<b style='font-size:34px; letter-spacing:3px;'>ARCHIVE</b>";
   }
 }
 
