@@ -41,10 +41,13 @@ h1{ margin-top:20px; }
   align-items:center;
   justify-content:center;
   user-select:none;
+  font-size:40px;
+  font-weight:bold;
 }
 
 .filled{
   background:#2e7d32;
+  color:white;
   cursor:grab;
 }
 
@@ -77,8 +80,8 @@ button{
 
 <div id="instructions">
 <b>Instructions:</b><br>
-Click or drag a green tile into the empty space.<br>
-Rearrange the tiles until they form the letter <b>M</b>.
+Drag a green tile into the empty space.<br>
+No clicking required — only drag and drop.
 </div>
 
 <div id="stats">
@@ -92,6 +95,7 @@ Moves: <span id="moves">0</span>
 <div id="message"></div>
 
 <script>
+
 const board = document.getElementById("board");
 const movesEl = document.getElementById("moves");
 const message = document.getElementById("message");
@@ -99,44 +103,45 @@ const message = document.getElementById("message");
 let tiles = [];
 let moves = 0;
 
-// Solved M pattern (visual goal)
 const solvedPattern = [
   1,0,1,
   1,1,1,
   1,0,1
 ];
 
+// Build board
 function createBoard(){
   board.innerHTML="";
+
   tiles.forEach((val, i)=>{
     const div = document.createElement("div");
     div.className="tile";
-    div.dataset.index=i;
 
-    if(val===0){
+    if(val === 0){
       div.classList.add("empty");
-      div.ondragover=e=>e.preventDefault();
-      div.ondrop=drop;
+
+      div.ondragover = e => e.preventDefault();
+
+      div.ondrop = (e) => {
+        const fromIndex = parseInt(e.dataTransfer.getData("text"));
+        moveTile(fromIndex);
+      };
+
     } else {
       div.classList.add("filled");
-      div.draggable=true;
-      div.ondragstart=drag;
-      div.addEventListener("click", ()=>moveTile(i));
+
+      div.draggable = true;
+
+      div.ondragstart = (e) => {
+        e.dataTransfer.setData("text", i);
+      };
     }
 
     board.appendChild(div);
   });
 }
 
-function drag(e){
-  e.dataTransfer.setData("text", e.target.dataset.index);
-}
-
-function drop(e){
-  const fromIndex = e.dataTransfer.getData("text");
-  moveTile(parseInt(fromIndex));
-}
-
+// movement rules
 function getNeighbors(i){
   const n=[];
   const r=Math.floor(i/3), c=i%3;
@@ -171,6 +176,7 @@ function checkWin(){
   }
 }
 
+// solvability
 function isSolvable(arr){
   let inv=0;
   for(let i=0;i<arr.length;i++){
@@ -199,6 +205,7 @@ function startGame(){
 }
 
 startGame();
+
 </script>
 
 </body>
